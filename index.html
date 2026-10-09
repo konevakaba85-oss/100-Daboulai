@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>100% Daboulai - Super App Dabou</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & Poppins -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              green: '#0B8C4E',
+              greenDark: '#086e3d',
+              greenLight: '#E0F4E8',
+              greenBadge: '#2ca469',
+              orange: '#FF8A00',
+              orangeDark: '#e57a00',
+              orangeLight: '#FFE9D6',
+              bg: '#F9F6F0',
+              text: '#1A1A1A',
+              muted: '#71717A',
+              cardBorder: '#EFEAE1'
+            }
+          },
+          fontFamily: {
+            poppins: ['Poppins', 'sans-serif'],
+            inter: ['Inter', 'sans-serif'],
+          },
+          borderRadius: {
+            'custom': '16px',
+            'custom-lg': '22px'
+          },
+          boxShadow: {
+            'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.03)',
+            'card': '0 2px 12px rgba(0, 0, 0, 0.04)',
+            'elevated': '0 10px 30px -5px rgba(11, 140, 78, 0.15)',
+            'gold': '0 8px 25px rgba(255, 138, 0, 0.35)',
+            'bottom-nav': '0 -4px 25px rgba(0,0,0,0.06)'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Poppins', 'Inter', sans-serif;
+      background-color: #0f1112;
+      color: #1A1A1A;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .tap-press:active {
+      transform: scale(0.965);
+      transition: transform 0.1s ease;
+    }
+
+    #scratchCanvas {
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    @keyframes pulse-subtle {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+    }
+    .animate-subtle-bounce {
+      animation: pulse-subtle 2.2s infinite ease-in-out;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen w-full flex items-center justify-center p-0 sm:p-4 md:p-6 antialiased">
+
+  <!-- Desktop Quick Switcher -->
+  <div class="fixed top-3 left-1/2 -translate-x-1/2 z-50 hidden md:flex items-center gap-2 bg-neutral-900/90 backdrop-blur-md px-4 py-2 rounded-full border border-neutral-700/80 shadow-2xl text-xs text-white">
+    <span class="font-semibold text-emerald-400 mr-2 flex items-center gap-1.5">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+      100% Daboulai
+    </span>
+    <button onclick="switchScreen('screen-home')" class="px-2.5 py-1 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-200">1. Accueil</button>
+    <button onclick="switchScreen('screen-residences')" class="px-2.5 py-1 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-200">2. Résidences</button>
+    <button onclick="switchScreen('screen-movies')" class="px-2.5 py-1 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-200">3. Film</button>
+    <button onclick="switchScreen('screen-houses')" class="px-2.5 py-1 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-200">4. Maisons</button>
+    <button onclick="switchScreen('screen-food')" class="px-2.5 py-1 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-200">5. Maquis</button>
+    <button onclick="switchScreen('screen-admin')" class="px-2.5 py-1 rounded-full bg-brand-orange text-white font-bold">⚙️ Gestionnaire</button>
+  </div>
+
+  <!-- Mobile Device Shell Frame -->
+  <div class="w-full max-w-[430px] h-[100dvh] sm:h-[890px] sm:max-h-[92vh] bg-[#F9F6F0] sm:rounded-[48px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] border-0 sm:border-[8px] sm:border-[#22252a] flex flex-col relative overflow-hidden">
+    
+    <!-- Phone Notch / Bar -->
+    <div class="w-full pt-2 pb-1 px-7 flex justify-between items-center bg-transparent z-40 shrink-0 select-none">
+      <span class="text-[13px] font-semibold tracking-tight text-neutral-800" id="liveClock">09:41</span>
+      <div class="w-24 h-4 bg-black rounded-full hidden sm:block mx-auto -mt-1 opacity-90"></div>
+      <div class="flex items-center gap-1.5 text-neutral-800 text-[11px] font-bold">
+        <span>4G</span>
+        <div class="flex items-center gap-0.5 ml-1 border border-neutral-700 rounded-sm px-0.5 py-0.2">
+          <span class="text-[9px]">98%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN SCROLLABLE APP BODY -->
+    <main id="appContainer" class="flex-1 w-full overflow-y-auto no-scrollbar relative pb-24">
+
+      <!-- ========================================== -->
+      <!-- SCREEN 1: ACCUEIL                          -->
+      <!-- ========================================== -->
+      <section id="screen-home" class="screen-view p-4 space-y-4">
+        <header class="flex items-center justify-between pt-1">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full border-2 border-brand-green bg-white flex items-center justify-center shadow-sm relative overflow-hidden">
+              <div class="flex flex-col items-center leading-none">
+                <span class="text-brand-orange font-extrabold text-sm tracking-tighter">100<span class="text-brand-green">%</span></span>
+                <span class="text-[7px] font-bold text-brand-green uppercase tracking-tight">Dabou</span>
+              </div>
+            </div>
+            <div>
+              <h1 class="text-xl font-bold text-neutral-900 tracking-tight flex items-center gap-1">100% Daboulai</h1>
+              <p class="text-xs text-brand-orange font-semibold">Tout Dabou, en direct WhatsApp</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <!-- Bouton Admin Direct -->
+            <button onclick="switchScreen('screen-admin')" title="Gérance & Paramètres" class="px-2.5 py-1.5 rounded-full bg-neutral-900 text-white flex items-center gap-1 text-[11px] font-bold shadow tap-press">
+              <span>⚙️</span> Gérance
+            </button>
+            <div onclick="switchScreen('screen-profile-mock')" class="w-9 h-9 rounded-full bg-brand-orange/20 border border-brand-orange/40 flex items-center justify-center text-brand-orange font-bold text-sm cursor-pointer tap-press">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>
+            </div>
+          </div>
+        </header>
+
+        <!-- Localisation -->
+        <div class="w-full bg-[#EAF7EE] text-brand-greenDark px-3.5 py-2 rounded-custom flex items-center justify-between text-xs font-medium border border-brand-green/20">
+          <div class="flex items-center gap-1.5 truncate">
+            <svg class="w-4 h-4 text-brand-green shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
+            <span class="truncate">Dabou, Côte d'Ivoire • En direct</span>
+          </div>
+          <span class="text-[10px] bg-brand-green text-white px-2 py-0.5 rounded-full font-bold">Actif</span>
+        </div>
+
+        <!-- Banner Dabou -->
+        <div class="w-full rounded-custom p-4 bg-gradient-to-r from-[#FF8A00] via-[#D87D17] to-[#0B8C4E] text-white shadow-soft relative overflow-hidden">
+          <div class="relative z-10 max-w-[70%]">
+            <h2 class="text-base font-bold leading-tight">Commandez à Dabou !</h2>
+            <p class="text-[11px] text-white/90 mt-1 leading-snug">Livraison express, meublés & maisons en contact direct WhatsApp.</p>
+            <button onclick="switchScreen('screen-food')" class="mt-3 bg-white text-neutral-900 text-xs font-semibold px-3 py-1.5 rounded-full inline-flex items-center gap-1.5 shadow-sm tap-press">
+              <span>Commander maintenant</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 Main Categories -->
+        <div>
+          <div class="flex items-center justify-between mb-2.5">
+            <h3 class="font-bold text-sm text-neutral-900">Catégories principales</h3>
+            <span class="text-xs font-bold text-brand-orange">Dabou Express</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div onclick="switchScreen('screen-movies')" class="bg-[#FFE9D6] p-4 rounded-custom flex flex-col items-center justify-center text-center cursor-pointer border border-[#FFDFC4] tap-press shadow-card">
+              <span class="text-3xl mb-1">🎬</span>
+              <h4 class="font-bold text-xs text-neutral-900">Film à Dabou</h4>
+              <p class="text-[11px] text-neutral-600 mt-0.5">Cinéma & Projections</p>
+            </div>
+
+            <div onclick="switchScreen('screen-residences')" class="bg-[#E0F4E8] p-4 rounded-custom flex flex-col items-center justify-center text-center cursor-pointer border border-[#C6EBDA] tap-press shadow-card">
+              <span class="text-3xl mb-1">🏨</span>
+              <h4 class="font-bold text-xs text-neutral-900">Résidences</h4>
+              <p class="text-[11px] text-neutral-600 mt-0.5">Meublés & Nuitées</p>
+            </div>
+
+            <div onclick="switchScreen('screen-food')" class="bg-[#FFE9D6] p-4 rounded-custom flex flex-col items-center justify-center text-center cursor-pointer border border-[#FFDFC4] tap-press shadow-card">
+              <span class="text-3xl mb-1">🛵</span>
+              <h4 class="font-bold text-xs text-neutral-900">Maquis & Resto</h4>
+              <p class="text-[11px] text-neutral-600 mt-0.5">Commande WhatsApp</p>
+            </div>
+
+            <div onclick="switchScreen('screen-houses')" class="bg-[#E0F4E8] p-4 rounded-custom flex flex-col items-center justify-center text-center cursor-pointer border border-[#C6EBDA] tap-press shadow-card">
+              <span class="text-3xl mb-1">🏡</span>
+              <h4 class="font-bold text-xs text-neutral-900">Maisons en location</h4>
+              <p class="text-[11px] text-neutral-600 mt-0.5">Longue durée</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scratch Card Promo -->
+        <div onclick="openScratchCardModal()" class="w-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 text-neutral-950 p-3 rounded-custom shadow-gold flex items-center justify-between cursor-pointer border border-yellow-300 tap-press">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-neutral-950 text-yellow-400 flex items-center justify-center text-xl shrink-0 animate-subtle-bounce">🎁</div>
+            <div>
+              <h4 class="text-xs font-black uppercase">CARTE À GRATTER FIDÉLITÉ</h4>
+              <p class="text-[10px] font-semibold text-neutral-900/90">Grattez et débloquez votre cadeau chez nos partenaires</p>
+            </div>
+          </div>
+          <span class="text-xs font-bold bg-neutral-950 text-white px-2 py-1 rounded-lg">Gratter ✨</span>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SCREEN 2: RÉSIDENCES MEUBLÉES              -->
+      <!-- ========================================== -->
+      <section id="screen-residences" class="screen-view hidden p-4 space-y-4">
+        <header class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <button onclick="switchScreen('screen-home')" class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-neutral-700 tap-press">←</button>
+            <span class="text-xl font-extrabold text-[#0B3B60]">Résidences Dabou</span>
+          </div>
+          <button onclick="openAddPartnerModal('residence')" class="text-xs bg-brand-green text-white px-3 py-1.5 rounded-full font-bold tap-press">+ Ajouter</button>
+        </header>
+
+        <div id="residencesListContainer" class="space-y-3">
+          <!-- Dynamically populated from JS -->
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SCREEN 3: FILMS & CINÉMA                   -->
+      <!-- ========================================== -->
+      <section id="screen-movies" class="screen-view hidden p-4 space-y-4">
+        <header class="flex items-center justify-between">
+          <button onclick="switchScreen('screen-home')" class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-neutral-700 tap-press">←</button>
+          <span class="text-xl font-extrabold text-brand-green">Film & Cinéma Dabou</span>
+          <div class="w-8"></div>
+        </header>
+
+        <div class="bg-gradient-to-r from-orange-500 to-emerald-600 rounded-custom p-4 text-white">
+          <h3 class="font-black text-lg">Centre Culturel Dabou</h3>
+          <p class="text-xs text-white/90">Programmation officielle & Réservations directes</p>
+        </div>
+
+        <div class="bg-white p-3.5 rounded-custom border border-neutral-200 shadow-card space-y-3">
+          <div class="flex items-center justify-between">
+            <h4 class="font-bold text-sm text-neutral-900">Billet Cinéma Dabou</h4>
+            <span class="font-black text-brand-orange text-sm">1 500 FCFA</span>
+          </div>
+          <p class="text-xs text-neutral-500">Séances du jour : 15h30, 18h00, 20h45</p>
+          <button onclick="orderCinemaTicketWhatsApp()" class="w-full bg-[#25D366] hover:bg-[#1fb857] text-white font-bold text-xs py-2.5 rounded-xl flex items-center justify-center gap-2 tap-press shadow-sm">
+            <span>💬</span> Réserver son billet sur WhatsApp
+          </button>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SCREEN 4: MAISONS EN LOCATION              -->
+      <!-- ========================================== -->
+      <section id="screen-houses" class="screen-view hidden p-4 space-y-4">
+        <header class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <button onclick="switchScreen('screen-home')" class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-neutral-700 tap-press">←</button>
+            <span class="text-xl font-extrabold text-brand-greenDark">Maisons à Dabou</span>
+          </div>
+          <button onclick="openAddPartnerModal('house')" class="text-xs bg-brand-green text-white px-3 py-1.5 rounded-full font-bold tap-press">+ Ajouter</button>
+        </header>
+
+        <div id="housesListContainer" class="space-y-3">
+          <!-- Dynamically populated from JS -->
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SCREEN 5: MAQUIS & RESTAURANTS             -->
+      <!-- ========================================== -->
+      <section id="screen-food" class="screen-view hidden p-4 space-y-4">
+        <header class="bg-[#0B8C4E] -mx-4 -mt-4 p-4 rounded-b-[24px] text-white flex items-center justify-between shadow-soft">
+          <div class="flex items-center gap-2.5">
+            <button onclick="switchScreen('screen-home')" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white tap-press">←</button>
+            <div>
+              <h1 class="text-base font-black leading-tight">Maquis & Restos Dabou</h1>
+              <p class="text-[10px] text-white/90">Commande transmise direct sur leur WhatsApp</p>
+            </div>
+          </div>
+          <button onclick="openAddPartnerModal('food')" class="text-xs bg-white text-brand-green px-3 py-1.5 rounded-full font-bold tap-press">+ Partenaire</button>
+        </header>
+
+        <div id="foodListContainer" class="space-y-3">
+          <!-- Dynamically populated from JS -->
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SCREEN 6: GÉRANCE & PARAMÈTRES (ADMIN)     -->
+      <!-- ========================================== -->
+      <section id="screen-admin" class="screen-view hidden p-4 space-y-4">
+        <header class="flex items-center justify-between border-b pb-2">
+          <div class="flex items-center gap-2">
+            <button onclick="switchScreen('screen-home')" class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-neutral-700 tap-press">←</button>
+            <h2 class="text-base font-bold text-neutral-900">⚙️ Système de Gérance Dabou</h2>
+          </div>
+          <button onclick="resetDefaultData()" class="text-[11px] text-red-600 font-semibold tap-press">Réinitialiser</button>
+        </header>
+
+        <!-- Stats rapides -->
+        <div class="grid grid-cols-3 gap-2">
+          <div class="bg-white p-3 rounded-2xl border text-center shadow-card">
+            <span class="block text-xl font-black text-brand-green" id="statMaquis">0</span>
+            <span class="text-[10px] text-neutral-500 font-bold">Maquis</span>
+          </div>
+          <div class="bg-white p-3 rounded-2xl border text-center shadow-card">
+            <span class="block text-xl font-black text-brand-orange" id="statResidences">0</span>
+            <span class="text-[10px] text-neutral-500 font-bold">Résidences</span>
+          </div>
+          <div class="bg-white p-3 rounded-2xl border text-center shadow-card">
+            <span class="block text-xl font-black text-neutral-900" id="statHouses">0</span>
+            <span class="text-[10px] text-neutral-500 font-bold">Maisons</span>
+          </div>
+        </div>
+
+        <!-- Formulaire d'ajout express -->
+        <div class="bg-white p-4 rounded-custom border border-neutral-200 shadow-card space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-xs text-neutral-900 uppercase">Ajouter un Partenaire Pro</h3>
+            <span class="text-[10px] bg-brand-green/20 text-brand-green px-2 py-0.5 rounded-full font-bold">Direct WhatsApp</span>
+          </div>
+
+          <div class="space-y-2 text-xs">
+            <div>
+              <label class="block font-semibold text-neutral-700 mb-1">Catégorie :</label>
+              <select id="adminCategory" class="w-full bg-neutral-50 border p-2 rounded-xl focus:ring-1 focus:ring-brand-green outline-none">
+                <option value="food">Restaurant / Maquis</option>
+                <option value="residence">Résidence Meublée</option>
+                <option value="house">Maison en Location</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-neutral-700 mb-1">Nom de l'établissement / Bien :</label>
+              <input id="adminName" type="text" placeholder="Ex: Maquis Le Calao, Résidence Palmier..." class="w-full bg-neutral-50 border p-2 rounded-xl">
+            </div>
+
+            <div>
+              <label class="block font-semibold text-neutral-700 mb-1">Numéro WhatsApp du Partenaire (avec indicatif) :</label>
+              <input id="adminPhone" type="text" placeholder="2250748000000" class="w-full bg-neutral-50 border p-2 rounded-xl">
+              <span class="text-[10px] text-neutral-400">Exemple: 2250700000000 (sans signe + ni espace)</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block font-semibold text-neutral-700 mb-1">Prix indicatif (FCFA) :</label>
+                <input id="adminPrice" type="text" placeholder="Ex: 3500 ou 150 000" class="w-full bg-neutral-50 border p-2 rounded-xl">
+              </div>
+              <div>
+                <label class="block font-semibold text-neutral-700 mb-1">Quartier (Dabou) :</label>
+                <input id="adminLocation" type="text" placeholder="Plateau, Kpass..." class="w-full bg-neutral-50 border p-2 rounded-xl">
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-neutral-700 mb-1">Description / Spécialités :</label>
+              <input id="adminDesc" type="text" placeholder="Ex: Attiéké Poisson braisé, Climatisation, Wifi..." class="w-full bg-neutral-50 border p-2 rounded-xl">
+            </div>
+
+            <button onclick="handleSaveNewPartner()" class="w-full bg-brand-green hover:bg-brand-greenDark text-white font-bold py-2.5 rounded-xl shadow tap-press transition mt-2">
+              Enregistrer le partenaire dans l'App
+            </button>
+          </div>
+        </div>
+
+        <!-- Liste des éléments gérés -->
+        <div class="space-y-2">
+          <h4 class="font-bold text-xs text-neutral-800">Partenaires actifs enregistrés :</h4>
+          <div id="adminPartnersList" class="space-y-2">
+            <!-- Liste injectée via JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN PROFIL -->
+      <section id="screen-profile-mock" class="screen-view hidden p-4 space-y-4">
+        <header class="flex items-center justify-between">
+          <button onclick="switchScreen('screen-home')" class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-neutral-700 tap-press">←</button>
+          <h2 class="text-base font-bold">Mon Profil 100% Daboulai</h2>
+          <div class="w-8"></div>
+        </header>
+
+        <div class="bg-white p-5 rounded-custom text-center space-y-2 border border-neutral-200">
+          <div class="w-16 h-16 rounded-full bg-brand-orange/20 text-brand-orange mx-auto flex items-center justify-center text-3xl font-bold">
+            🧑🏾
+          </div>
+          <h3 class="font-bold text-base text-neutral-900">Gestionnaire & Client</h3>
+          <p class="text-xs text-neutral-500">Dabou, Côte d'Ivoire</p>
+        </div>
+
+        <div class="space-y-2">
+          <div onclick="switchScreen('screen-admin')" class="bg-neutral-900 text-white p-3.5 rounded-custom flex items-center justify-between cursor-pointer font-bold text-xs tap-press">
+            <span>⚙️ Accéder au Système de Gérance (Admin)</span>
+            <span>→</span>
+          </div>
+          <div onclick="openScratchCardModal()" class="bg-[#FFE9D6] p-3.5 rounded-custom flex items-center justify-between cursor-pointer font-bold text-xs text-brand-orange tap-press">
+            <span>🎁 Ouvrir ma Carte Fidélité</span>
+            <span>→</span>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- DYNAMIC BOTTOM NAVIGATION BAR -->
+    <nav id="bottomNavBar" class="absolute bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-neutral-200/80 px-2 py-2 flex justify-around items-center z-40 rounded-t-[22px] shadow-bottom-nav select-none">
+      <button onclick="switchScreen('screen-home')" class="flex flex-col items-center justify-center flex-1 py-1 tap-press text-brand-orange font-bold">
+        <span>🏠</span>
+        <span class="text-[10px] mt-0.5">Accueil</span>
+      </button>
+      <button onclick="switchScreen('screen-food')" class="flex flex-col items-center justify-center flex-1 py-1 tap-press text-neutral-500 font-medium">
+        <span>🛵</span>
+        <span class="text-[10px] mt-0.5">Maquis</span>
+      </button>
+      <button onclick="switchScreen('screen-residences')" class="flex flex-col items-center justify-center flex-1 py-1 tap-press text-neutral-500 font-medium">
+        <span>🏨</span>
+        <span class="text-[10px] mt-0.5">Résidences</span>
+      </button>
+      <button onclick="switchScreen('screen-houses')" class="flex flex-col items-center justify-center flex-1 py-1 tap-press text-neutral-500 font-medium">
+        <span>🏡</span>
+        <span class="text-[10px] mt-0.5">Maisons</span>
+      </button>
+      <button onclick="switchScreen('screen-admin')" class="flex flex-col items-center justify-center flex-1 py-1 tap-press text-neutral-500 font-medium">
+        <span>⚙️</span>
+        <span class="text-[10px] mt-0.5">Gérance</span>
+      </button>
+    </nav>
+
+    <!-- ========================================== -->
+    <!-- MODAL: COMMANDE DIRECTE WHATSAPP           -->
+    <!-- ========================================== -->
+    <div id="orderModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+      <div class="bg-white w-full max-w-sm rounded-[24px] p-5 text-neutral-900 space-y-3.5 shadow-2xl">
+        <div class="flex items-center justify-between border-b pb-2">
+          <h3 class="font-bold text-sm flex items-center gap-1.5">
+            <span class="text-green-600">💬</span> Passer commande sur WhatsApp
+          </h3>
+          <button onclick="closeOrderModal()" class="text-neutral-400 hover:text-neutral-800 font-bold">✕</button>
+        </div>
+
+        <div class="space-y-1">
+          <span id="orderPartnerType" class="text-[10px] font-bold uppercase text-brand-orange bg-brand-orangeLight px-2 py-0.5 rounded-full">Maquis</span>
+          <h4 id="orderPartnerName" class="font-extrabold text-base text-neutral-900">Maquis Le Bon Goût</h4>
+          <p id="orderItemDetails" class="text-xs text-neutral-500 font-medium">Attiéké Poisson Braisé • 3 500 FCFA</p>
+        </div>
+
+        <div class="space-y-2 text-xs">
+          <div>
+            <label class="block font-semibold text-neutral-700 mb-1">Votre Nom & Prénoms :</label>
+            <input id="clientName" type="text" placeholder="Ex: Jean Kouassi" class="w-full bg-neutral-50 border p-2 rounded-xl">
+          </div>
+          <div>
+            <label class="block font-semibold text-neutral-700 mb-1">Votre quartier / Lieu de livraison à Dabou :</label>
+            <input id="clientLocation" type="text" placeholder="Ex: Quartier Plateau, face pharmacie" class="w-full bg-neutral-50 border p-2 rounded-xl">
+          </div>
+          <div>
+            <label class="block font-semibold text-neutral-700 mb-1">Précisions (Quantité, piment, boissons...) :</label>
+            <input id="clientNotes" type="text" placeholder="Ex: 2 plats, bien pimenté" class="w-full bg-neutral-50 border p-2 rounded-xl">
+          </div>
+        </div>
+
+        <button onclick="sendOrderToWhatsApp()" class="w-full bg-[#25D366] hover:bg-[#20b858] text-white font-bold text-xs py-3 rounded-xl flex items-center justify-center gap-2 shadow-md tap-press">
+          <span>Envoyer la commande sur leur WhatsApp 🚀</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- MODAL SCRATCH CARD -->
+    <div id="scratchModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+      <div class="bg-white w-full max-w-[340px] rounded-[24px] p-5 relative shadow-2xl border-2 border-amber-300 text-center space-y-3.5">
+        <button onclick="closeScratchCardModal()" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-600 font-bold">✕</button>
+        <h3 class="text-base font-black text-neutral-900">Votre Cadeau 100% Daboulai !</h3>
+        <p class="text-[11px] text-neutral-500">Grattez ci-dessous pour révéler votre récompense</p>
+
+        <div class="relative w-full h-44 rounded-2xl overflow-hidden border-2 border-dashed border-amber-400 bg-amber-50 flex items-center justify-center p-3 select-none">
+          <div class="w-full flex flex-col items-center justify-center space-y-1 text-center">
+            <span class="text-2xl">🥪🥤</span>
+            <div class="bg-brand-orange text-white text-[10px] font-black px-2 py-0.5 rounded-full">GAGNÉ !</div>
+            <h4 class="font-extrabold text-xs text-neutral-900">1 Panini Chaud + 1 Bissap Glacé</h4>
+            <p class="text-[10px] text-brand-green font-bold">Partenaire : Chez Maman Rose (Plateau Dabou)</p>
+          </div>
+          <canvas id="scratchCanvas" width="300" height="176" class="absolute inset-0 w-full h-full z-20"></canvas>
+        </div>
+
+        <button onclick="claimLoyaltyCoupon()" class="w-full bg-brand-green text-white font-bold text-xs py-2 rounded-xl shadow tap-press">
+          Enregistrer le coupon
+        </button>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toastNotification" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-neutral-900/90 text-white text-xs px-4 py-2 rounded-full shadow-2xl pointer-events-none opacity-0 transition-opacity duration-300 flex items-center gap-2 max-w-[90%] text-center">
+      <span id="toastText">Action effectuée</span>
+    </div>
+
+  </div>
+
+  <script>
+    // ==========================================
+    // DONNÉES PAR DÉFAUT DES PARTENAIRES DABOU
+    // ==========================================
+    const DEFAULT_DATA = {
+      food: [
+        {
+          id: 'food_1',
+          name: 'Maquis Le Dja',
+          phone: '2250748210012',
+          price: '4 500 FCFA',
+          location: 'Centre-ville Dabou',
+          desc: 'Attiéké poisson braisé, Choukouya mouton',
+          image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=300&q=80'
+        },
+        {
+          id: 'food_2',
+          name: 'Chez Fatou',
+          phone: '2250592113450',
+          price: '2 500 FCFA',
+          location: 'Quartier Toupah',
+          desc: 'Garba thon frais de Dabou, Alloco',
+          image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=300&q=80'
+        }
+      ],
+      residence: [
+        {
+          id: 'res_1',
+          name: 'Villa Cocotier',
+          phone: '2250748210012',
+          price: '12 000 FCFA / nuit',
+          location: 'Quartier Plateau',
+          desc: 'Climatisation, Wifi fibre, TV Canal+, Cuisine',
+          image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=300&q=80'
+        },
+        {
+          id: 'res_2',
+          name: 'Studio Lagune',
+          phone: '2250177448920',
+          price: '18 000 FCFA / nuit',
+          location: 'Bord de Lagune',
+          desc: 'Vue panoramique sur l\'eau, Terrasse privée',
+          image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=300&q=80'
+        }
+      ],
+      house: [
+        {
+          id: 'house_1',
+          name: 'Villa Oasis 3 Pièces',
+          phone: '2250748210012',
+          price: '250 000 FCFA / mois',
+          location: 'Quartier Plateau',
+          desc: '3 chambres, grand salon, garage 2 voitures, cour pavée',
+          image: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=600&q=80'
+        },
+        {
+          id: 'house_2',
+          name: 'Maison Familiale Kpass',
+          phone: '2250592113450',
+          price: '180 000 FCFA / mois',
+          location: 'Kpass Dabou',
+          desc: 'Cadre calme, eau et électricité fiables, clôturé',
+          image: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=600&q=80'
+        }
+      ]
+    };
+
+    // Chargement dynamique avec persistence localStorage
+    let appData = JSON.parse(localStorage.getItem('daboulai_partners_data')) || DEFAULT_DATA;
+
+    function saveAppData() {
+      localStorage.setItem('daboulai_partners_data', JSON.stringify(appData));
+      renderAllPartners();
+      updateAdminDashboard();
+    }
+
+    function resetDefaultData() {
+      if (confirm('Voulez-vous restaurer les partenaires par défaut ?')) {
+        appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
+        saveAppData();
+        showToast('Données réinitialisées');
+      }
+    }
+
+    // Horloge
+    function updateClock() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const el = document.getElementById('liveClock');
+      if (el) el.innerText = `${hours}:${minutes}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    function showToast(message) {
+      const toast = document.getElementById('toastNotification');
+      const text = document.getElementById('toastText');
+      if (!toast || !text) return;
+      text.innerText = message;
+      toast.classList.remove('opacity-0');
+      toast.classList.add('opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('opacity-100');
+        toast.classList.add('opacity-0');
+      }, 2600);
+    }
+
+    // Gestion des écrans
+    function switchScreen(screenId) {
+      document.querySelectorAll('.screen-view').forEach(s => s.classList.add('hidden'));
+      const target = document.getElementById(screenId);
+      if (target) {
+        target.classList.remove('hidden');
+        document.getElementById('appContainer').scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      if (screenId === 'screen-admin') {
+        updateAdminDashboard();
+      }
+    }
+
+    // ==========================================
+    // RENDU DYNAMIQUE DE TOUS LES PARTENAIRES
+    // ==========================================
+    function renderAllPartners() {
+      // 1. Maquis & Restos
+      const foodBox = document.getElementById('foodListContainer');
+      if (foodBox) {
+        foodBox.innerHTML = appData.food.map(item => `
+          <div class="bg-white p-3 rounded-custom shadow-card border border-neutral-200/80 flex gap-3">
+            <img src="${item.image}" class="w-24 h-24 rounded-2xl object-cover shrink-0" onerror="this.src='https://placehold.co/150x150/FF8A00/ffffff?text=Maquis'"/>
+            <div class="flex-1 min-w-0 flex flex-col justify-between">
+              <div>
+                <h4 class="font-bold text-sm text-neutral-900 truncate">${item.name}</h4>
+                <p class="text-[11px] text-neutral-500">📍 ${item.location}</p>
+                <p class="text-[11px] text-neutral-600 font-medium line-clamp-1 mt-0.5">${item.desc}</p>
+              </div>
+              <div class="flex items-center justify-between mt-2 pt-1 border-t border-neutral-100">
+                <span class="text-xs font-black text-brand-orange">${item.price}</span>
+                <button onclick="openOrderModal('food', '${item.name}', '${item.price}', '${item.phone}')" class="bg-[#25D366] hover:bg-[#1fad54] text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow-sm tap-press flex items-center gap-1">
+                  <span>💬 Commander</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // 2. Résidences
+      const resBox = document.getElementById('residencesListContainer');
+      if (resBox) {
+        resBox.innerHTML = appData.residence.map(item => `
+          <div class="bg-white p-3 rounded-custom shadow-card border border-neutral-200/80 flex gap-3">
+            <img src="${item.image}" class="w-24 h-24 rounded-2xl object-cover shrink-0" onerror="this.src='https://placehold.co/150x150/0B8C4E/ffffff?text=Residence'"/>
+            <div class="flex-1 min-w-0 flex flex-col justify-between">
+              <div>
+                <h4 class="font-bold text-sm text-neutral-900 truncate">${item.name}</h4>
+                <p class="text-[11px] text-neutral-500">📍 ${item.location}</p>
+                <p class="text-[10px] text-brand-green font-semibold mt-1">${item.desc}</p>
+              </div>
+              <div class="flex items-center justify-between mt-2 pt-1 border-t border-neutral-100">
+                <span class="text-xs font-black text-brand-green">${item.price}</span>
+                <button onclick="openOrderModal('residence', '${item.name}', '${item.price}', '${item.phone}')" class="bg-[#25D366] text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow-sm tap-press flex items-center gap-1">
+                  <span>💬 Réserver</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // 3. Maisons
+      const houseBox = document.getElementById('housesListContainer');
+      if (houseBox) {
+        houseBox.innerHTML = appData.house.map(item => `
+          <div class="bg-white p-3 rounded-custom shadow-card border border-neutral-200/80 space-y-2">
+            <div class="relative rounded-2xl overflow-hidden h-36 bg-neutral-100">
+              <img src="${item.image}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/400x200/0B8C4E/ffffff?text=Maison'"/>
+            </div>
+            <div>
+              <h4 class="font-bold text-sm text-neutral-900">${item.name}</h4>
+              <p class="text-[11px] text-neutral-500">📍 ${item.location} • ${item.desc}</p>
+            </div>
+            <div class="flex items-center justify-between pt-1 border-t">
+              <span class="text-sm font-black text-brand-greenDark">${item.price}</span>
+              <button onclick="openOrderModal('house', '${item.name}', '${item.price}', '${item.phone}')" class="bg-[#25D366] text-white text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1 shadow-sm tap-press">
+                <span>💬 WhatsApp Bailleur</span>
+              </button>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    // ==========================================
+    // LOGIQUE DE COMMANDE WHATSAPP DIRECTE
+    // ==========================================
+    let currentOrder = null;
+
+    function openOrderModal(type, name, price, phone) {
+      currentOrder = { type, name, price, phone };
+      document.getElementById('orderPartnerType').innerText = type.toUpperCase();
+      document.getElementById('orderPartnerName').innerText = name;
+      document.getElementById('orderItemDetails').innerText = `${price} • Dabou`;
+      document.getElementById('orderModal').classList.remove('hidden');
+    }
+
+    function closeOrderModal() {
+      document.getElementById('orderModal').classList.add('hidden');
+    }
+
+    function sendOrderToWhatsApp() {
+      if (!currentOrder) return;
+      const clientName = document.getElementById('clientName').value.trim() || 'Client Dabou';
+      const clientLoc = document.getElementById('clientLocation').value.trim() || 'Dabou';
+      const clientNotes = document.getElementById('clientNotes').value.trim() || 'Aucune note particulière';
+
+      // Construction du message WhatsApp soigné et vendeur
+      const message = `Bonjour *${currentOrder.name}* !\n\nJ'ai vu votre offre sur l'application *100% Daboulai* et je souhaite passer commande / réserver :\n\n` +
+                      `📌 *Article/Bien :* ${currentOrder.name}\n` +
+                      `💰 *Prix :* ${currentOrder.price}\n` +
+                      `👤 *Nom du Client :* ${clientName}\n` +
+                      `📍 *Lieu / Quartier de livraison :* ${clientLoc}\n` +
+                      `📝 *Précisions :* ${clientNotes}\n\n` +
+                      `_Merci de me confirmer la disponibilité et le délai. À tout de suite !_`;
+
+      const cleanPhone = currentOrder.phone.replace(/[^0-9]/g, '');
+      const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+
+      // Ouverture directe de WhatsApp
+      window.open(whatsappUrl, '_blank');
+      closeOrderModal();
+      showToast('Redirection vers WhatsApp du partenaire...');
+    }
+
+    function orderCinemaTicketWhatsApp() {
+      const message = `Bonjour Centre Culturel de Dabou !\nJe souhaite réserver mon billet de cinéma (1 500 FCFA) depuis l'application *100% Daboulai*. Merci !`;
+      window.open(`https://wa.me/2250748210012?text=${encodeURIComponent(message)}`, '_blank');
+    }
+
+    // ==========================================
+    // SYSTÈME DE GÉRANCE & ADMINISTRATION
+    // ==========================================
+    function updateAdminDashboard() {
+      document.getElementById('statMaquis').innerText = appData.food.length;
+      document.getElementById('statResidences').innerText = appData.residence.length;
+      document.getElementById('statHouses').innerText = appData.house.length;
+
+      const adminList = document.getElementById('adminPartnersList');
+      if (!adminList) return;
+
+      let allPartners = [
+        ...appData.food.map(p => ({ ...p, catName: 'Maquis/Resto', catKey: 'food' })),
+        ...appData.residence.map(p => ({ ...p, catName: 'Résidence', catKey: 'residence' })),
+        ...appData.house.map(p => ({ ...p, catName: 'Maison', catKey: 'house' }))
+      ];
+
+      adminList.innerHTML = allPartners.map(p => `
+        <div class="bg-white p-2.5 rounded-xl border flex items-center justify-between shadow-sm text-xs">
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="font-bold text-neutral-900">${p.name}</span>
+              <span class="text-[9px] bg-neutral-100 text-neutral-600 px-1.5 py-0.2 rounded font-semibold">${p.catName}</span>
+            </div>
+            <p class="text-[10px] text-neutral-500">📞 WhatsApp: +${p.phone} • ${p.location}</p>
+          </div>
+          <button onclick="deletePartner('${p.catKey}', '${p.id}')" class="text-red-500 hover:text-red-700 font-bold px-2 py-1 bg-red-50 rounded-lg">
+            ✕ Retirer
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function handleSaveNewPartner() {
+      const cat = document.getElementById('adminCategory').value;
+      const name = document.getElementById('adminName').value.trim();
+      const phone = document.getElementById('adminPhone').value.trim();
+      const price = document.getElementById('adminPrice').value.trim();
+      const location = document.getElementById('adminLocation').value.trim();
+      const desc = document.getElementById('adminDesc').value.trim();
+
+      if (!name || !phone) {
+        alert('Veuillez au moins renseigner le nom et le numéro WhatsApp.');
+        return;
+      }
+
+      const newPartner = {
+        id: 'p_' + Date.now(),
+        name,
+        phone: phone.replace(/[^0-9]/g, ''),
+        price: price ? price + ' FCFA' : 'Sur demande',
+        location: location || 'Dabou',
+        desc: desc || 'Partenaire certifié 100% Daboulai',
+        image: cat === 'food' 
+          ? 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=300&q=80'
+          : 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=300&q=80'
+      };
+
+      appData[cat].unshift(newPartner);
+      saveAppData();
+
+      // Reset inputs
+      document.getElementById('adminName').value = '';
+      document.getElementById('adminPhone').value = '';
+      document.getElementById('adminPrice').value = '';
+      document.getElementById('adminLocation').value = '';
+      document.getElementById('adminDesc').value = '';
+
+      showToast(`✅ ${name} ajouté avec succès !`);
+    }
+
+    function deletePartner(category, id) {
+      if (confirm('Voulez-vous supprimer ce partenaire ?')) {
+        appData[category] = appData[category].filter(item => item.id !== id);
+        saveAppData();
+        showToast('Partenaire retiré');
+      }
+    }
+
+    function openAddPartnerModal(category) {
+      switchScreen('screen-admin');
+      const catSelector = document.getElementById('adminCategory');
+      if (catSelector) catSelector.value = category;
+    }
+
+    // ==========================================
+    // CARTE À GRATTER FIDÉLITÉ
+    // ==========================================
+    let scratchInitialized = false;
+    function openScratchCardModal() {
+      document.getElementById('scratchModal').classList.remove('hidden');
+      if (!scratchInitialized) {
+        setTimeout(initScratchCanvas, 60);
+        scratchInitialized = true;
+      }
+    }
+    function closeScratchCardModal() {
+      document.getElementById('scratchModal').classList.add('hidden');
+    }
+    function initScratchCanvas() {
+      const canvas = document.getElementById('scratchCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      grad.addColorStop(0, '#D4AF37');
+      grad.addColorStop(1, '#996515');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#422800';
+      ctx.font = 'bold 13px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('GRATTEZ AVEC LE DOIGT ICI ✨', canvas.width / 2, canvas.height / 2);
+
+      let isDrawing = false;
+      function scratch(e) {
+        if (!isDrawing) return;
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const x = (clientX - rect.left) * (canvas.width / rect.width);
+        const y = (clientY - rect.top) * (canvas.height / rect.height);
+
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.beginPath();
+        ctx.arc(x, y, 22, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      canvas.addEventListener('mousedown', () => isDrawing = true);
+      window.addEventListener('mouseup', () => isDrawing = false);
+      canvas.addEventListener('mousemove', scratch);
+      canvas.addEventListener('touchstart', (e) => { isDrawing = true; scratch(e); });
+      window.addEventListener('touchend', () => isDrawing = false);
+      canvas.addEventListener('touchmove', scratch);
+    }
+
+    function claimLoyaltyCoupon() {
+      closeScratchCardModal();
+      showToast('🎟️ Coupon enregistré pour votre prochain maquis !');
+    }
+
+    // Initialisation
+    window.addEventListener('DOMContentLoaded', () => {
+      renderAllPartners();
+      updateAdminDashboard();
+    });
+  </script>
+</body>
+</html>
